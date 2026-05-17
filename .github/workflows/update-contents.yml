@@ -1,12 +1,26 @@
 name: Update contents.json
 
 # Rebuilds contents.json from whatever .wcp assets are published in this repo's
-# GitHub Releases. Runs daily, and immediately whenever a release changes, so the
-# catalogue the WinNative app reads is always in sync with what is downloadable.
+# GitHub Releases, so the catalogue the WinNative app reads is always in sync.
+#
+# It runs:
+#   * after every nightly/weekly build workflow finishes (workflow_run) — this is
+#     what catches new nightlies, because releases created inside a workflow with
+#     the default GITHUB_TOKEN do NOT raise a `release` event;
+#   * on `release` events — covers releases created/edited with a PAT or by hand;
+#   * once daily as a safety net; and on demand.
 
 on:
   schedule:
     - cron: '0 6 * * *'
+  workflow_run:
+    workflows:
+      - Nightly DXVK
+      - Nightly VKD3D
+      - Nightly FEXCore
+      - Nightly Box64 & WOWBox64
+      - Weekly Bundle
+    types: [completed]
   release:
     types: [published, released, edited, deleted, unpublished]
   workflow_dispatch:
@@ -24,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -48,8 +64,9 @@ jobs:
           git commit -m "chore: refresh contents.json [skip ci]"
           n=0
           until [ "$n" -ge 5 ]; do
-            git pull --rebase origin "${{ github.ref_name }}" || true
-            if git push origin "HEAD:${{ github.ref_name }}"; then exit 0; fi
+            git fetch origin main
+            git rebase origin/main || git rebase --abort
+            if git push origin HEAD:main; then exit 0; fi
             n=$((n + 1))
             sleep 10
           done
