@@ -1,6 +1,12 @@
 [
   {
     "type": "Box64",
+    "verName": "Box64-0.4.3-0a7b7d4f6",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.3-0a7b7d4f6/Box64-0.4.3-0a7b7d4f6.wcp"
+  },
+  {
+    "type": "Box64",
     "verName": "Box64-0.4.2",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-Box64/Box64-0.4.2.wcp"
@@ -73,9 +79,21 @@
   },
   {
     "type": "DXVK",
+    "verName": "2.7.1-gplasync-60978eb9",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-nightly-60978eb9/2.7.1-gplasync-60978eb9.wcp"
+  },
+  {
+    "type": "DXVK",
     "verName": "Dxvk-2.7.1-arm64ec-gplasync",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-DXVK-arm64ec/Dxvk-2.7.1-arm64ec-gplasync.wcp"
+  },
+  {
+    "type": "DXVK",
+    "verName": "2.7.1-arm64ec-gplasync-60978eb9",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-arm64ec-nightly-60978eb9/2.7.1-arm64ec-gplasync-60978eb9.wcp"
   },
   {
     "type": "DXVK",
@@ -301,6 +319,12 @@
   },
   {
     "type": "FEXCore",
+    "verName": "FEXCore-2605-ab9a8c62a",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2605-ab9a8c62a/FEXCore-2605-ab9a8c62a.wcp"
+  },
+  {
+    "type": "FEXCore",
     "verName": "FEX-2604",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-FEXCore/FEX-2604.wcp"
@@ -475,6 +499,18 @@
   },
   {
     "type": "VKD3D",
+    "verName": "Vkd3d-3.0.1-d2757180",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-d2757180/Vkd3d-3.0.1-d2757180.wcp"
+  },
+  {
+    "type": "VKD3D",
+    "verName": "Vkd3d-3.0.1-arm64ec-d2757180",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-d2757180/Vkd3d-3.0.1-arm64ec-d2757180.wcp"
+  },
+  {
+    "type": "VKD3D",
     "verName": "Vkd3d-proton-2.14.1",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-VKD3D/Vkd3d-proton-2.14.1.wcp"
@@ -490,6 +526,12 @@
     "verName": "Vkd3d-2.9",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-VKD3D/Vkd3d-2.9.wcp"
+  },
+  {
+    "type": "WOWBox64",
+    "verName": "WOWBox64-0.4.3-0a7b7d4f6",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.3-0a7b7d4f6/WOWBox64-0.4.3-0a7b7d4f6.wcp"
   },
   {
     "type": "WOWBox64",
