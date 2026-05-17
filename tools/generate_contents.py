@@ -144,16 +144,21 @@ def collect_releases() -> list[dict]:
             break
         page += 1
 
+    # Newest first, so the first release matching a nightly prefix is the latest.
+    releases.sort(key=lambda r: r.get("created_at", ""), reverse=True)
+
+    # Only the most recent nightly per variant is listed; older nightly releases
+    # may still exist for manual download but are kept out of the catalogue.
+    nightly_seen: set[str] = set()
     for release in releases:
         tag = release.get("tag_name", "")
         ctype = STABLE_TAGS.get(tag)
         if ctype is None:
-            for prefix, prefix_type in NIGHTLY_PREFIXES.items():
-                if tag.startswith(prefix):
-                    ctype = prefix_type
-                    break
-        if ctype is None:
-            continue
+            prefix = next((p for p in NIGHTLY_PREFIXES if tag.startswith(p)), None)
+            if prefix is None or prefix in nightly_seen:
+                continue
+            nightly_seen.add(prefix)
+            ctype = NIGHTLY_PREFIXES[prefix]
         for asset in release.get("assets", []):
             name = asset.get("name", "")
             if name.endswith(WCP_SUFFIXES):
