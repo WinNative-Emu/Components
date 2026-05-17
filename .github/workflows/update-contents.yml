@@ -1,0 +1,56 @@
+name: Update contents.json
+
+# Rebuilds contents.json from whatever .wcp assets are published in this repo's
+# GitHub Releases. Runs daily, and immediately whenever a release changes, so the
+# catalogue the WinNative app reads is always in sync with what is downloadable.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  release:
+    types: [published, released, edited, deleted, unpublished]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-contents
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate contents.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 tools/generate_contents.py --source releases --out contents.json
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- contents.json; then
+            echo "contents.json already up to date."
+            exit 0
+          fi
+          git add contents.json
+          git commit -m "chore: refresh contents.json [skip ci]"
+          n=0
+          until [ "$n" -ge 5 ]; do
+            git pull --rebase origin "${{ github.ref_name }}" || true
+            if git push origin "HEAD:${{ github.ref_name }}"; then exit 0; fi
+            n=$((n + 1))
+            sleep 10
+          done
+          exit 1

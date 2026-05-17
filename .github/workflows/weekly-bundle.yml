@@ -1,0 +1,80 @@
+name: Weekly Bundle
+
+# Collects the latest nightly .wcp of every component into a single 7z archive.
+#
+# Fix vs. the reference setup: the VKD3D component prefix was misspelled
+# "vk3dk-nightly-" there, so VKD3D was silently never bundled. Corrected below.
+
+on:
+  schedule:
+    - cron: '0 4 * * 5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download latest nightlies
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p weekly_assets
+          cd weekly_assets
+          download_latest() {
+            PREFIX="$1"
+            TAG=$(gh release list --repo ${{ github.repository }} --limit 100 --json tagName,createdAt \
+              --jq "[.[] | select(.tagName | startswith(\"$PREFIX\"))] | sort_by(.createdAt) | reverse | .[0].tagName // empty")
+            if [ -n "$TAG" ]; then
+              echo "Bundling $TAG"
+              gh release download "$TAG" --repo ${{ github.repository }} --pattern '*.wcp' --clobber || true
+            else
+              echo "::warning::no release found for prefix $PREFIX"
+            fi
+          }
+          download_latest "dxvk-nightly-"
+          download_latest "dxvk-arm64ec-nightly-"
+          download_latest "vkd3d-nightly-"
+          download_latest "vkd3d-arm64ec-nightly-"
+          download_latest "fex-nightly-"
+          download_latest "box64-nightly-"
+          download_latest "wowbox64-nightly-"
+
+      - name: Create 7z bundle
+        run: |
+          DATE=$(date +'%Y-%m-%d')
+          echo "WEEKLY_DATE=$DATE" >> $GITHUB_ENV
+          if [ -z "$(ls -A weekly_assets 2>/dev/null)" ]; then
+            echo "::error::no nightly assets available to bundle"
+            exit 1
+          fi
+          (cd weekly_assets && 7z a -mx=9 "../Weekly-$DATE.7z" *.wcp)
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: Weekly-${{ env.WEEKLY_DATE }}
+          name: Weekly Bundle ${{ env.WEEKLY_DATE }}
+          files: Weekly-${{ env.WEEKLY_DATE }}.7z
+          body: |
+            Automated weekly bundle — the latest nightly build of each component
+            as of ${{ env.WEEKLY_DATE }}: DXVK (x86_64 + ARM64EC), VKD3D
+            (x86_64 + ARM64EC), FEXCore, Box64 and WOWBox64.
+
+      - name: Prune old weekly bundles
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release list --repo ${{ github.repository }} --limit 500 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("Weekly-"))] | sort_by(.createdAt) | reverse | .[6:] | .[].tagName' \
+          | while read -r TAG; do
+              [ -n "$TAG" ] || continue
+              echo "Deleting old bundle: $TAG"
+              gh release delete "$TAG" --repo ${{ github.repository }} --cleanup-tag -y || true
+              sleep 2
+            done

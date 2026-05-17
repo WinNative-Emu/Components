@@ -1,0 +1,16 @@
+# Upstream repo cloned locally for research only — never committed.
+/Reference/
+
+# Component packages are published as GitHub Release assets, not stored in git.
+# The component folders (DXVK/, Wine/, ...) hold them locally only as a staging
+# area for uploading to releases; the binaries themselves stay out of history.
+*.wcp
+*.wcp.xz
+*.7z
+
+# OS / editor / tooling noise
+.DS_Store
+Thumbs.db
+*.swp
+__pycache__/
+*.pyc

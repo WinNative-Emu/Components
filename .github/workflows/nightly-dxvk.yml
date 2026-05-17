@@ -1,0 +1,342 @@
+name: Nightly DXVK
+
+# Builds DXVK (GPLAsync) for x86_64 and ARM64EC straight from upstream master.
+# A build is skipped when the current upstream commit was already released.
+# Publishing/refreshing a release triggers update-contents.yml on its own, so
+# this workflow never edits the README or contents.json directly.
+
+on:
+  schedule:
+    - cron: '14 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-standard:
+    name: DXVK (x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout DXVK
+        uses: actions/checkout@v4
+        with:
+          repository: doitsujin/dxvk
+          path: dxvk
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Check for updates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd dxvk
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "UPSTREAM_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          elif gh release list --repo ${{ github.repository }} --limit 100 | grep -q "dxvk-nightly-${COMMIT_HASH}"; then
+            echo "SHOULD_BUILD=false" >> $GITHUB_ENV
+          else
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          fi
+
+      - name: Generate version info
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd dxvk
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
+          echo "VERSION_NAME=${LATEST_TAG}-gplasync-${COMMIT_HASH}" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build mingw-w64 glslang-tools wine ccache
+
+      - name: Restore ccache
+        if: env.SHOULD_BUILD == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-dxvk-standard-${{ env.UPSTREAM_HASH }}
+          restore-keys: ccache-dxvk-standard-
+
+      - name: Configure ccache
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          mkdir -p .ccache
+          echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
+          echo "CCACHE_COMPRESS=1" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=500M" >> $GITHUB_ENV
+
+      - name: Apply GPLAsync patch
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd dxvk
+          wget -q https://gitlab.com/Ph42oN/dxvk-gplasync/-/raw/main/patches/dxvk-gplasync-master.patch
+          patch -p1 < dxvk-gplasync-master.patch
+
+      - name: Build DXVK
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd dxvk
+          ./package-release.sh master ../dxvk-built --no-package
+
+      - name: Package .wcp
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          mkdir -p packaging/system32 packaging/syswow64
+          cp dxvk-built/dxvk-master/x64/*.dll packaging/system32/
+          cp dxvk-built/dxvk-master/x32/*.dll packaging/syswow64/
+          cat <<EOF > packaging/profile.json
+          {
+            "type": "DXVK",
+            "versionName": "${{ env.VERSION_NAME }}",
+            "versionCode": 0,
+            "description": "DXVK ${{ env.LATEST_TAG }} GPLAsync (nightly ${{ env.COMMIT_HASH }})",
+            "files": [
+              { "source": "system32/d3d9.dll",      "target": "\${system32}/d3d9.dll" },
+              { "source": "system32/d3d10core.dll", "target": "\${system32}/d3d10core.dll" },
+              { "source": "system32/d3d11.dll",     "target": "\${system32}/d3d11.dll" },
+              { "source": "system32/dxgi.dll",      "target": "\${system32}/dxgi.dll" },
+              { "source": "syswow64/d3d9.dll",      "target": "\${syswow64}/d3d9.dll" },
+              { "source": "syswow64/d3d10core.dll", "target": "\${syswow64}/d3d10core.dll" },
+              { "source": "syswow64/d3d11.dll",     "target": "\${syswow64}/d3d11.dll" },
+              { "source": "syswow64/dxgi.dll",      "target": "\${syswow64}/dxgi.dll" }
+            ]
+          }
+          EOF
+          cd packaging
+          tar -cJf "../${{ env.VERSION_NAME }}.wcp" *
+
+      - name: Publish release
+        if: env.SHOULD_BUILD == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dxvk-nightly-${{ env.COMMIT_HASH }}
+          name: DXVK Nightly ${{ env.COMMIT_HASH }}
+          files: '*.wcp'
+          body: |
+            Automated nightly build of DXVK (GPLAsync, x86_64).
+            Upstream commit: https://github.com/doitsujin/dxvk/commit/${{ env.UPSTREAM_HASH }}
+
+      - name: Prune old nightlies
+        if: env.SHOULD_BUILD == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release list --repo ${{ github.repository }} --limit 500 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("dxvk-nightly-"))] | sort_by(.createdAt) | reverse | .[8:] | .[].tagName' \
+          | while read -r TAG; do
+              [ -n "$TAG" ] || continue
+              echo "Deleting old release: $TAG"
+              gh release delete "$TAG" --repo ${{ github.repository }} --cleanup-tag -y || true
+              sleep 2
+            done
+
+  build-arm64ec:
+    name: DXVK (ARM64EC)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout DXVK
+        uses: actions/checkout@v4
+        with:
+          repository: doitsujin/dxvk
+          path: dxvk
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Check for updates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd dxvk
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "UPSTREAM_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          elif gh release list --repo ${{ github.repository }} --limit 100 | grep -q "dxvk-arm64ec-nightly-${COMMIT_HASH}"; then
+            echo "SHOULD_BUILD=false" >> $GITHUB_ENV
+          else
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          fi
+
+      - name: Generate version info
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd dxvk
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0 | sed 's/^v//')
+          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
+          echo "VERSION_NAME=${LATEST_TAG}-arm64ec-gplasync-${COMMIT_HASH}" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl xz-utils jq git build-essential \
+            python3 pkg-config zstd meson ninja-build wget unzip ccache
+
+      - name: Restore glslang
+        if: env.SHOULD_BUILD == 'true'
+        id: cache-glslang
+        uses: actions/cache@v4
+        with:
+          path: glslang
+          key: glslang-master-tot
+
+      - name: Setup glslang
+        if: env.SHOULD_BUILD == 'true' && steps.cache-glslang.outputs.cache-hit != 'true'
+        run: |
+          wget -q https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-linux-Release.zip
+          unzip -q glslang-master-linux-Release.zip -d glslang
+          rm glslang-master-linux-Release.zip
+
+      - name: Restore llvm-mingw
+        if: env.SHOULD_BUILD == 'true'
+        id: cache-llvm-mingw
+        uses: actions/cache@v4
+        with:
+          path: llvm-mingw-20251104-ucrt-ubuntu-22.04-x86_64
+          key: llvm-mingw-20251104
+
+      - name: Setup llvm-mingw
+        if: env.SHOULD_BUILD == 'true' && steps.cache-llvm-mingw.outputs.cache-hit != 'true'
+        run: |
+          wget -q "https://github.com/mstorsjo/llvm-mingw/releases/download/20251104/llvm-mingw-20251104-ucrt-ubuntu-22.04-x86_64.tar.xz" -O llvm.tar.xz
+          tar -xf llvm.tar.xz
+          rm llvm.tar.xz
+
+      - name: Set PATH
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          echo "$PWD/glslang/bin" >> $GITHUB_PATH
+          echo "$PWD/llvm-mingw-20251104-ucrt-ubuntu-22.04-x86_64/bin" >> $GITHUB_PATH
+
+      - name: Restore ccache
+        if: env.SHOULD_BUILD == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-dxvk-arm64ec-${{ env.UPSTREAM_HASH }}
+          restore-keys: ccache-dxvk-arm64ec-
+
+      - name: Configure ccache
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          mkdir -p .ccache
+          echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
+          echo "CCACHE_COMPRESS=1" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=500M" >> $GITHUB_ENV
+
+      - name: Apply GPLAsync patch
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd dxvk
+          wget -q https://gitlab.com/Ph42oN/dxvk-gplasync/-/raw/main/patches/dxvk-gplasync-master.patch
+          patch -p1 < dxvk-gplasync-master.patch
+
+      - name: Build DXVK
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cat <<EOF > arm64ec.txt
+          [binaries]
+          c = 'arm64ec-w64-mingw32-clang'
+          cpp = 'arm64ec-w64-mingw32-clang++'
+          ar = 'llvm-ar'
+          strip = 'llvm-strip'
+          windres = 'arm64ec-w64-mingw32-windres'
+          widl = 'arm64ec-w64-mingw32-widl'
+          pkg-config = 'pkg-config'
+          [host_machine]
+          system = 'windows'
+          cpu_family = 'aarch64'
+          cpu = 'aarch64'
+          endian = 'little'
+          EOF
+          cat <<EOF > x86.txt
+          [binaries]
+          c = 'i686-w64-mingw32-clang'
+          cpp = 'i686-w64-mingw32-clang++'
+          ar = 'llvm-ar'
+          strip = 'llvm-strip'
+          windres = 'i686-w64-mingw32-windres'
+          widl = 'i686-w64-mingw32-widl'
+          pkg-config = 'pkg-config'
+          [host_machine]
+          system = 'windows'
+          cpu_family = 'x86'
+          cpu = 'i686'
+          endian = 'little'
+          EOF
+          cd dxvk
+          meson setup build-ec --cross-file ../arm64ec.txt -Dbuildtype=release -Dstrip=true
+          meson setup build-x86 --cross-file ../x86.txt -Dbuildtype=release -Dstrip=true
+          ninja -C build-ec -j 2
+          ninja -C build-x86 -j 2
+
+      - name: Package .wcp
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          mkdir -p packaging/system32 packaging/syswow64
+          copy_dll() {
+            cp "dxvk/$1/src/d3d11/d3d11.dll" "$2/"
+            cp "dxvk/$1/src/d3d10/d3d10core.dll" "$2/"
+            cp "dxvk/$1/src/d3d9/d3d9.dll" "$2/"
+            cp "dxvk/$1/src/d3d8/d3d8.dll" "$2/" || true
+            cp "dxvk/$1/src/dxgi/dxgi.dll" "$2/"
+          }
+          copy_dll build-ec packaging/system32
+          copy_dll build-x86 packaging/syswow64
+          llvm-strip --strip-all packaging/system32/*.dll
+          llvm-strip --strip-all packaging/syswow64/*.dll
+          cat <<EOF > packaging/profile.json
+          {
+            "type": "DXVK",
+            "versionName": "${{ env.VERSION_NAME }}",
+            "versionCode": 0,
+            "description": "DXVK ${{ env.LATEST_TAG }} ARM64EC GPLAsync (nightly ${{ env.COMMIT_HASH }})",
+            "files": [
+              { "source": "system32/d3d9.dll",      "target": "\${system32}/d3d9.dll" },
+              { "source": "system32/d3d10core.dll", "target": "\${system32}/d3d10core.dll" },
+              { "source": "system32/d3d11.dll",     "target": "\${system32}/d3d11.dll" },
+              { "source": "system32/dxgi.dll",      "target": "\${system32}/dxgi.dll" },
+              { "source": "syswow64/d3d9.dll",      "target": "\${syswow64}/d3d9.dll" },
+              { "source": "syswow64/d3d10core.dll", "target": "\${syswow64}/d3d10core.dll" },
+              { "source": "syswow64/d3d11.dll",     "target": "\${syswow64}/d3d11.dll" },
+              { "source": "syswow64/dxgi.dll",      "target": "\${syswow64}/dxgi.dll" }
+            ]
+          }
+          EOF
+          cd packaging
+          tar -cJf "../${{ env.VERSION_NAME }}.wcp" *
+
+      - name: Publish release
+        if: env.SHOULD_BUILD == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dxvk-arm64ec-nightly-${{ env.COMMIT_HASH }}
+          name: DXVK ARM64EC Nightly ${{ env.COMMIT_HASH }}
+          files: '*.wcp'
+          body: |
+            Automated nightly build of DXVK (GPLAsync, ARM64EC).
+            Upstream commit: https://github.com/doitsujin/dxvk/commit/${{ env.UPSTREAM_HASH }}
+
+      - name: Prune old nightlies
+        if: env.SHOULD_BUILD == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release list --repo ${{ github.repository }} --limit 500 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("dxvk-arm64ec-nightly-"))] | sort_by(.createdAt) | reverse | .[8:] | .[].tagName' \
+          | while read -r TAG; do
+              [ -n "$TAG" ] || continue
+              echo "Deleting old release: $TAG"
+              gh release delete "$TAG" --repo ${{ github.repository }} --cleanup-tag -y || true
+              sleep 2
+            done

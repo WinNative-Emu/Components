@@ -1,0 +1,303 @@
+name: Nightly Box64 & WOWBox64
+
+# Builds Box64 (Android native) and WOWBox64 from the shared ptitSeb/box64 tree.
+#
+# Fix vs. the reference setup: both jobs share the same upstream commit hash, so
+# the old "-<hash>" release check let whichever job finished first cancel the
+# other. Each job now checks for its OWN tag prefix.
+
+on:
+  schedule:
+    - cron: '14 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-box64:
+    name: Box64 (Android native)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout box64
+        uses: actions/checkout@v4
+        with:
+          repository: ptitSeb/box64
+          path: source
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Check for updates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd source
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          echo "UPSTREAM_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          elif gh release list --repo ${{ github.repository }} --limit 100 | grep -q "box64-nightly-.*${SHORT_HASH}"; then
+            echo "SHOULD_BUILD=false" >> $GITHUB_ENV
+          else
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          fi
+
+      - name: Install dependencies
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git cmake make python3 p7zip-full wget tar file unzip ccache
+
+      - name: Restore Android NDK
+        if: env.SHOULD_BUILD == 'true'
+        id: cache-ndk
+        uses: actions/cache@v4
+        with:
+          path: android-ndk-r26b
+          key: ndk-r26b
+
+      - name: Setup Android NDK
+        if: env.SHOULD_BUILD == 'true' && steps.cache-ndk.outputs.cache-hit != 'true'
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r26b-linux.zip
+          unzip -q android-ndk-r26b-linux.zip
+          rm android-ndk-r26b-linux.zip
+
+      - name: Set NDK environment
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          echo "ANDROID_NDK_HOME=$PWD/android-ndk-r26b" >> $GITHUB_ENV
+          echo "BOX64_COMPILER=$PWD/android-ndk-r26b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android28-clang" >> $GITHUB_ENV
+
+      - name: Restore ccache
+        if: env.SHOULD_BUILD == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-box64-native-${{ env.UPSTREAM_HASH }}
+          restore-keys: ccache-box64-native-
+
+      - name: Configure ccache
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          mkdir -p .ccache
+          echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
+          echo "CCACHE_COMPRESS=1" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=500M" >> $GITHUB_ENV
+
+      - name: Get version info
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd source
+          MAJOR=$(grep '#define BOX64_MAJOR'    src/box64version.h | awk '{print $3}')
+          MINOR=$(grep '#define BOX64_MINOR'    src/box64version.h | awk '{print $3}')
+          REVISION=$(grep '#define BOX64_REVISION' src/box64version.h | awk '{print $3}')
+          echo "FULL_VERSION=${MAJOR}.${MINOR}.${REVISION}-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Apply controller-fix patch
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd source
+          wget -q "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/patch/pipetto-controller-fix.patch" -O controller.patch
+          patch -p1 < controller.patch || echo "::warning::controller-fix patch did not apply cleanly; continuing"
+
+      - name: Build
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          mkdir build && cd build
+          cmake ../source \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_C_COMPILER=${{ env.BOX64_COMPILER }} \
+            -DANDROID=1 -DARM_DYNAREC=1 -DBAD_SIGNAL=1 \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc)
+          ${{ env.ANDROID_NDK_HOME }}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip box64
+
+      - name: Package .wcp
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd build
+          cat <<EOF > profile.json
+          {
+            "type": "Box64",
+            "versionName": "${{ env.FULL_VERSION }}",
+            "versionCode": 0,
+            "description": "Box64 nightly ${{ env.FULL_VERSION }}",
+            "files": [
+              { "source": "box64", "target": "\${bindir}/box64" }
+            ]
+          }
+          EOF
+          tar -cJf "Box64-${{ env.FULL_VERSION }}.wcp" box64 profile.json
+
+      - name: Publish release
+        if: env.SHOULD_BUILD == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: box64-nightly-${{ env.FULL_VERSION }}
+          name: Box64 Nightly ${{ env.FULL_VERSION }}
+          files: build/Box64-*.wcp
+          body: |
+            Automated nightly build of Box64 (Android native).
+            Upstream commit: https://github.com/ptitSeb/box64/commit/${{ env.UPSTREAM_HASH }}
+
+      - name: Prune old nightlies
+        if: env.SHOULD_BUILD == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release list --repo ${{ github.repository }} --limit 500 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("box64-nightly-"))] | sort_by(.createdAt) | reverse | .[8:] | .[].tagName' \
+          | while read -r TAG; do
+              [ -n "$TAG" ] || continue
+              echo "Deleting old release: $TAG"
+              gh release delete "$TAG" --repo ${{ github.repository }} --cleanup-tag -y || true
+              sleep 2
+            done
+
+  build-wowbox64:
+    name: WOWBox64 (llvm-mingw)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout box64
+        uses: actions/checkout@v4
+        with:
+          repository: ptitSeb/box64
+          path: source
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Check for updates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd source
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          echo "UPSTREAM_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          elif gh release list --repo ${{ github.repository }} --limit 100 | grep -q "wowbox64-nightly-.*${SHORT_HASH}"; then
+            echo "SHOULD_BUILD=false" >> $GITHUB_ENV
+          else
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          fi
+
+      - name: Install dependencies
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git cmake make python3 wget tar ccache
+
+      - name: Restore llvm-mingw
+        if: env.SHOULD_BUILD == 'true'
+        id: cache-llvm-mingw
+        uses: actions/cache@v4
+        with:
+          path: llvm-mingw-20240619-ucrt-ubuntu-20.04-x86_64
+          key: llvm-mingw-20240619
+
+      - name: Setup llvm-mingw
+        if: env.SHOULD_BUILD == 'true' && steps.cache-llvm-mingw.outputs.cache-hit != 'true'
+        run: |
+          wget -q https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-ucrt-ubuntu-20.04-x86_64.tar.xz
+          tar -xf llvm-mingw-*.tar.xz
+          rm llvm-mingw-*.tar.xz
+
+      - name: Set toolchain environment
+        if: env.SHOULD_BUILD == 'true'
+        run: echo "MINGW_PATH=$PWD/llvm-mingw-20240619-ucrt-ubuntu-20.04-x86_64/bin" >> $GITHUB_ENV
+
+      - name: Restore ccache
+        if: env.SHOULD_BUILD == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-wowbox64-${{ env.UPSTREAM_HASH }}
+          restore-keys: ccache-wowbox64-
+
+      - name: Configure ccache
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          mkdir -p .ccache
+          echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
+          echo "CCACHE_COMPRESS=1" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=500M" >> $GITHUB_ENV
+
+      - name: Patch mingw CRT shims
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd source
+          printf '\nint __mingw_vsprintf(char* buffer, const char* format, va_list args) { return vsprintf(buffer, format, args); }\n' >> wine/common/crt.c
+          printf '\nint strcasecmp(const char *s1, const char *s2);\nint (*__imp__stricmp)(const char *, const char *) = strcasecmp;\n' >> wine/common/crt.c
+
+      - name: Get version info
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd source
+          MAJOR=$(grep '#define BOX64_MAJOR'    src/box64version.h | awk '{print $3}')
+          MINOR=$(grep '#define BOX64_MINOR'    src/box64version.h | awk '{print $3}')
+          REVISION=$(grep '#define BOX64_REVISION' src/box64version.h | awk '{print $3}')
+          echo "FULL_VERSION=${MAJOR}.${MINOR}.${REVISION}-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Apply controller-fix patch
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd source
+          wget -q "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/patch/pipetto-controller-fix.patch" -O controller.patch
+          patch -p1 < controller.patch || echo "::warning::controller-fix patch did not apply cleanly; continuing"
+
+      - name: Build
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          export PATH="$PATH:${{ env.MINGW_PATH }}"
+          mkdir build && cd build
+          cmake ../source \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_C_COMPILER=aarch64-w64-mingw32-gcc \
+            -DWOW64=1 -DARM_DYNAREC=1 \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc) wowbox64
+
+      - name: Package .wcp
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          cd build/wowbox64-prefix/src/wowbox64-build
+          cat <<EOF > profile.json
+          {
+            "type": "WOWBox64",
+            "versionName": "${{ env.FULL_VERSION }}",
+            "versionCode": 0,
+            "description": "WOWBox64 nightly ${{ env.FULL_VERSION }}",
+            "files": [
+              { "source": "wowbox64.dll", "target": "\${system32}/wowbox64.dll" }
+            ]
+          }
+          EOF
+          tar -cJf "WOWBox64-${{ env.FULL_VERSION }}.wcp" wowbox64.dll profile.json
+
+      - name: Publish release
+        if: env.SHOULD_BUILD == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: wowbox64-nightly-${{ env.FULL_VERSION }}
+          name: WOWBox64 Nightly ${{ env.FULL_VERSION }}
+          files: build/wowbox64-prefix/src/wowbox64-build/WOWBox64-*.wcp
+          body: |
+            Automated nightly build of WOWBox64.
+            Upstream commit: https://github.com/ptitSeb/box64/commit/${{ env.UPSTREAM_HASH }}
+
+      - name: Prune old nightlies
+        if: env.SHOULD_BUILD == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release list --repo ${{ github.repository }} --limit 500 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("wowbox64-nightly-"))] | sort_by(.createdAt) | reverse | .[8:] | .[].tagName' \
+          | while read -r TAG; do
+              [ -n "$TAG" ] || continue
+              echo "Deleting old release: $TAG"
+              gh release delete "$TAG" --repo ${{ github.repository }} --cleanup-tag -y || true
+              sleep 2
+            done

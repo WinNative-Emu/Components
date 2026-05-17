@@ -1,0 +1,181 @@
+name: Nightly FEXCore
+
+# Builds the FEX-Emu ARM64EC / WoW64 emulation cores from upstream master.
+
+on:
+  schedule:
+    - cron: '14 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: FEXCore (ARM64EC)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout FEX
+        uses: actions/checkout@v4
+        with:
+          repository: FEX-Emu/FEX
+          path: src
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Check for updates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd src
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          echo "UPSTREAM_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=${SHORT_HASH}" >> $GITHUB_ENV
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          elif gh release list --repo ${{ github.repository }} --limit 100 | grep -Eq "fex-nightly-.*${SHORT_HASH}"; then
+            echo "SHOULD_BUILD=false" >> $GITHUB_ENV
+          else
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          fi
+
+      - name: Install dependencies
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends \
+            ca-certificates curl xz-utils jq git glslang-tools build-essential \
+            python3 python3-venv python3-pip pkg-config cmake ninja-build zstd \
+            dos2unix perl tar unzip llvm crossbuild-essential-arm64 ccache
+
+      - name: Restore llvm-mingw
+        if: env.SHOULD_BUILD == 'true'
+        id: cache-llvm-mingw
+        uses: actions/cache@v4
+        with:
+          path: /opt/llvm-mingw
+          key: llvm-mingw-20251104
+
+      - name: Setup llvm-mingw
+        if: env.SHOULD_BUILD == 'true' && steps.cache-llvm-mingw.outputs.cache-hit != 'true'
+        run: |
+          wget -q "https://github.com/mstorsjo/llvm-mingw/releases/download/20251104/llvm-mingw-20251104-ucrt-ubuntu-22.04-x86_64.tar.xz" -O llvm.tar.xz
+          sudo rm -rf /opt/llvm-mingw
+          sudo mkdir -p /opt/llvm-mingw
+          sudo tar -C /opt/llvm-mingw --strip-components=1 -xJf llvm.tar.xz
+          rm llvm.tar.xz
+
+      - name: Set PATH
+        if: env.SHOULD_BUILD == 'true'
+        run: echo "/opt/llvm-mingw/bin" >> $GITHUB_PATH
+
+      - name: Restore ccache
+        if: env.SHOULD_BUILD == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-fexcore-${{ env.UPSTREAM_HASH }}
+          restore-keys: ccache-fexcore-
+
+      - name: Configure ccache
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          mkdir -p .ccache
+          echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
+          echo "CCACHE_COMPRESS=1" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=500M" >> $GITHUB_ENV
+
+      - name: Generate version name
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          git config --global --add safe.directory '*'
+          cd src
+          git fetch --tags --force
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "Unknown")
+          CLEAN_TAG=$(echo "$LATEST_TAG" | sed 's/^FEX-//')
+          echo "VERSION_NAME=${CLEAN_TAG}-${COMMIT_HASH}" >> $GITHUB_ENV
+
+      - name: Build FEXCore
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          build_arch() {
+            local triple="$1"
+            local dest="$2"
+            rm -rf "build-${triple}"
+            mkdir "build-${triple}"
+            cd "build-${triple}"
+            cmake -G Ninja -Wno-dev \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_TOOLCHAIN_FILE=../Data/CMake/toolchain_mingw.cmake \
+              -DMINGW_TRIPLE="${triple}-w64-mingw32" \
+              -DCMAKE_INSTALL_PREFIX=/usr \
+              -DCMAKE_INSTALL_LIBDIR=/usr/lib/wine/aarch64-windows \
+              -DENABLE_JEMALLOC_GLIBC_ALLOC=False \
+              -DENABLE_LTO=False \
+              -DENABLE_ASSERTIONS=False \
+              -DBUILD_TESTING=False \
+              ..
+            ninja
+            DESTDIR="$dest" ninja install
+            cd ..
+          }
+          cd src
+          build_arch arm64ec ../../stage-ec
+          build_arch aarch64 ../../stage-wo
+
+      - name: Package .wcp
+        if: env.SHOULD_BUILD == 'true'
+        run: |
+          rm -rf final_package
+          mkdir -p final_package/system32
+          DLL_EC=$(find stage-ec -type f -name '*.dll' | head -n 1)
+          DLL_WOW=$(find stage-wo -type f -name '*.dll' | head -n 1)
+          if [ ! -f "$DLL_EC" ] || [ ! -f "$DLL_WOW" ]; then
+            echo "::error::FEXCore DLLs not found after build"
+            exit 1
+          fi
+          cp "$DLL_EC"  final_package/system32/libarm64ecfex.dll
+          cp "$DLL_WOW" final_package/system32/libwow64fex.dll
+          /opt/llvm-mingw/bin/llvm-strip --strip-all final_package/system32/libarm64ecfex.dll
+          /opt/llvm-mingw/bin/llvm-strip --strip-all final_package/system32/libwow64fex.dll
+          cat <<EOF > final_package/profile.json
+          {
+            "type": "FEXCore",
+            "versionName": "${{ env.VERSION_NAME }}",
+            "versionCode": 0,
+            "description": "FEXCore nightly ${{ env.VERSION_NAME }}",
+            "files": [
+              { "source": "system32/libarm64ecfex.dll", "target": "\${system32}/libarm64ecfex.dll" },
+              { "source": "system32/libwow64fex.dll",   "target": "\${system32}/libwow64fex.dll" }
+            ]
+          }
+          EOF
+          cd final_package
+          tar -cJf "../FEXCore-${{ env.VERSION_NAME }}.wcp" .
+
+      - name: Publish release
+        if: env.SHOULD_BUILD == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fex-nightly-${{ env.VERSION_NAME }}
+          name: FEXCore Nightly ${{ env.VERSION_NAME }}
+          files: '*.wcp'
+          body: |
+            Automated nightly build of FEXCore.
+            Upstream commit: https://github.com/FEX-Emu/FEX/commit/${{ env.UPSTREAM_HASH }}
+
+      - name: Prune old nightlies
+        if: env.SHOULD_BUILD == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release list --repo ${{ github.repository }} --limit 500 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("fex-nightly-"))] | sort_by(.createdAt) | reverse | .[8:] | .[].tagName' \
+          | while read -r TAG; do
+              [ -n "$TAG" ] || continue
+              echo "Deleting old release: $TAG"
+              gh release delete "$TAG" --repo ${{ github.repository }} --cleanup-tag -y || true
+              sleep 2
+            done
