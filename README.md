@@ -82,9 +82,9 @@ The packaged binaries are built from upstream projects and remain under their
 original licenses. Thanks to the teams behind them:
 
 [DXVK](https://github.com/doitsujin/dxvk) ·
-[dxvk-gplasync](https://gitlab.com/Ph42oN/dxvk-gplasync) ·
+[DXVK-GPlasync](https://gitlab.com/Ph42oN/dxvk-gplasync) ·
 [DXVK-Sarek](https://github.com/pythonlover02) ·
-[vkd3d-proton](https://github.com/HansKristian-Work/vkd3d-proton) ·
+[VKD3D-Proton](https://github.com/HansKristian-Work/vkd3d-proton) ·
 [Box64](https://github.com/ptitSeb/box64) ·
 [FEX-Emu](https://github.com/FEX-Emu) ·
 [Wine](https://www.winehq.org/) ·
