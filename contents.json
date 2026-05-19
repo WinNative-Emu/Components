@@ -1,9 +1,9 @@
 [
   {
     "type": "Box64",
-    "verName": "Box64-0.4.3-0a7b7d4f6",
+    "verName": "Box64-0.4.3-129fc83e8",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.3-0a7b7d4f6/Box64-0.4.3-0a7b7d4f6.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.3-129fc83e8/Box64-0.4.3-129fc83e8.wcp"
   },
   {
     "type": "Box64",
@@ -319,9 +319,9 @@
   },
   {
     "type": "FEXCore",
-    "verName": "FEXCore-2605-af4da43bb",
+    "verName": "FEXCore-2605-27324ded8",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2605-af4da43bb/FEXCore-2605-af4da43bb.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2605-27324ded8/FEXCore-2605-27324ded8.wcp"
   },
   {
     "type": "FEXCore",
@@ -499,15 +499,15 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-d2757180",
+    "verName": "Vkd3d-3.0.1-fce46882",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-d2757180/Vkd3d-3.0.1-d2757180.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-fce46882/Vkd3d-3.0.1-fce46882.wcp"
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-arm64ec-d2757180",
+    "verName": "Vkd3d-3.0.1-arm64ec-fce46882",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-d2757180/Vkd3d-3.0.1-arm64ec-d2757180.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-fce46882/Vkd3d-3.0.1-arm64ec-fce46882.wcp"
   },
   {
     "type": "VKD3D",
@@ -529,9 +529,9 @@
   },
   {
     "type": "WOWBox64",
-    "verName": "WOWBox64-0.4.3-0a7b7d4f6",
+    "verName": "WOWBox64-0.4.3-129fc83e8",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.3-0a7b7d4f6/WOWBox64-0.4.3-0a7b7d4f6.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.3-129fc83e8/WOWBox64-0.4.3-129fc83e8.wcp"
   },
   {
     "type": "WOWBox64",
