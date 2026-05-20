@@ -1,9 +1,9 @@
 [
   {
     "type": "Box64",
-    "verName": "Box64-0.4.3-129fc83e8",
+    "verName": "Box64-0.4.3-024717cb0",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.3-129fc83e8/Box64-0.4.3-129fc83e8.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.3-024717cb0/Box64-0.4.3-024717cb0.wcp"
   },
   {
     "type": "Box64",
@@ -499,15 +499,15 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-fce46882",
+    "verName": "Vkd3d-3.0.1-arm64ec-1a227114",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-fce46882/Vkd3d-3.0.1-fce46882.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-1a227114/Vkd3d-3.0.1-arm64ec-1a227114.wcp"
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-arm64ec-fce46882",
+    "verName": "Vkd3d-3.0.1-1a227114",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-fce46882/Vkd3d-3.0.1-arm64ec-fce46882.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-1a227114/Vkd3d-3.0.1-1a227114.wcp"
   },
   {
     "type": "VKD3D",
