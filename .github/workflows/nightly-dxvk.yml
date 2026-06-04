@@ -1,6 +1,7 @@
 name: Nightly DXVK
 
-# Builds DXVK (GPLAsync) for x86_64 and ARM64EC straight from upstream master.
+# Builds DXVK (GPLAsync) for x86_64 and ARM64EC straight from upstream master,
+# patched with our own maintained GPLAsync patch at patch/dxvk-gplasync.patch.
 # A build is skipped when the current upstream commit was already released.
 # Publishing/refreshing a release triggers update-contents.yml on its own, so
 # this workflow never edits the README or contents.json directly.
@@ -26,6 +27,11 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Checkout component repo
+        uses: actions/checkout@v4
+        with:
+          path: components
+
       - name: Determine source, patch & version
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,26 +39,27 @@ jobs:
           cd dxvk
           git fetch --tags --force
           PB="https://gitlab.com/Ph42oN/dxvk-gplasync/-/raw/main/patches"
-          # Prefer a true nightly: DXVK master + the rolling GPLAsync master patch.
-          # GPLAsync rebases that patch only periodically, so once DXVK master moves
-          # ahead it stops applying and the build used to die here. When that happens
-          # fall back to the latest DXVK release tag and its matching version-pinned
-          # GPLAsync patch, which the GPLAsync project keeps in sync. The build then
-          # always succeeds — bleeding-edge when possible, latest stable otherwise.
-          wget -q "$PB/dxvk-gplasync-master.patch" -O gplasync.patch
+          # Primary: build bleeding-edge DXVK master with our own maintained GPLAsync
+          # patch (patch/dxvk-gplasync.patch — the upstream rolling patch, repaired to
+          # apply to current master). Upstream only rebases its master patch
+          # periodically, so it routinely stops applying; ours is kept current here.
+          # If master ever drifts far enough that even our patch no longer applies,
+          # fall back to the latest DXVK release tag plus its matching version-pinned
+          # upstream patch so the nightly never hard-fails.
+          cp "$GITHUB_WORKSPACE/components/patch/dxvk-gplasync.patch" gplasync.patch
           if patch -p1 -f --dry-run < gplasync.patch >/dev/null 2>&1; then
-            echo "GPLAsync master patch applies to DXVK master; building from master."
+            echo "Vendored GPLAsync patch applies to DXVK master; building from master."
             VER=$(git describe --tags --abbrev=0 | sed 's/^v//')
             UPSTREAM_HASH=$(git rev-parse HEAD)
           else
             TAG=$(git describe --tags --abbrev=0)
-            echo "GPLAsync master patch no longer applies to DXVK master; falling back to $TAG."
+            echo "Vendored GPLAsync patch no longer applies to DXVK master; falling back to $TAG."
             VER="${TAG#v}"
             VER_RE=${VER//./\\.}
             REV=$(curl -sf "https://gitlab.com/api/v4/projects/Ph42oN%2Fdxvk-gplasync/repository/tree?path=patches&per_page=100" \
                   | grep -oE "dxvk-gplasync-${VER_RE}-[0-9]+\.patch" | sort -V | tail -1)
             if [ -z "$REV" ]; then echo "::error::No GPLAsync patch published for DXVK $VER"; exit 1; fi
-            echo "Using GPLAsync patch $REV on DXVK $TAG."
+            echo "Using upstream GPLAsync patch $REV on DXVK $TAG."
             wget -q "$PB/$REV" -O gplasync.patch
             echo "BUILD_TAG=${TAG}" >> $GITHUB_ENV
             UPSTREAM_HASH=$(git rev-parse "${TAG}^{commit}")
@@ -175,6 +182,11 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Checkout component repo
+        uses: actions/checkout@v4
+        with:
+          path: components
+
       - name: Determine source, patch & version
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -182,26 +194,27 @@ jobs:
           cd dxvk
           git fetch --tags --force
           PB="https://gitlab.com/Ph42oN/dxvk-gplasync/-/raw/main/patches"
-          # Prefer a true nightly: DXVK master + the rolling GPLAsync master patch.
-          # GPLAsync rebases that patch only periodically, so once DXVK master moves
-          # ahead it stops applying and the build used to die here. When that happens
-          # fall back to the latest DXVK release tag and its matching version-pinned
-          # GPLAsync patch, which the GPLAsync project keeps in sync. The build then
-          # always succeeds — bleeding-edge when possible, latest stable otherwise.
-          wget -q "$PB/dxvk-gplasync-master.patch" -O gplasync.patch
+          # Primary: build bleeding-edge DXVK master with our own maintained GPLAsync
+          # patch (patch/dxvk-gplasync.patch — the upstream rolling patch, repaired to
+          # apply to current master). Upstream only rebases its master patch
+          # periodically, so it routinely stops applying; ours is kept current here.
+          # If master ever drifts far enough that even our patch no longer applies,
+          # fall back to the latest DXVK release tag plus its matching version-pinned
+          # upstream patch so the nightly never hard-fails.
+          cp "$GITHUB_WORKSPACE/components/patch/dxvk-gplasync.patch" gplasync.patch
           if patch -p1 -f --dry-run < gplasync.patch >/dev/null 2>&1; then
-            echo "GPLAsync master patch applies to DXVK master; building from master."
+            echo "Vendored GPLAsync patch applies to DXVK master; building from master."
             VER=$(git describe --tags --abbrev=0 | sed 's/^v//')
             UPSTREAM_HASH=$(git rev-parse HEAD)
           else
             TAG=$(git describe --tags --abbrev=0)
-            echo "GPLAsync master patch no longer applies to DXVK master; falling back to $TAG."
+            echo "Vendored GPLAsync patch no longer applies to DXVK master; falling back to $TAG."
             VER="${TAG#v}"
             VER_RE=${VER//./\\.}
             REV=$(curl -sf "https://gitlab.com/api/v4/projects/Ph42oN%2Fdxvk-gplasync/repository/tree?path=patches&per_page=100" \
                   | grep -oE "dxvk-gplasync-${VER_RE}-[0-9]+\.patch" | sort -V | tail -1)
             if [ -z "$REV" ]; then echo "::error::No GPLAsync patch published for DXVK $VER"; exit 1; fi
-            echo "Using GPLAsync patch $REV on DXVK $TAG."
+            echo "Using upstream GPLAsync patch $REV on DXVK $TAG."
             wget -q "$PB/$REV" -O gplasync.patch
             echo "BUILD_TAG=${TAG}" >> $GITHUB_ENV
             UPSTREAM_HASH=$(git rev-parse "${TAG}^{commit}")
