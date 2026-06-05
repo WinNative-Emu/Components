@@ -499,15 +499,15 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-6062cc70",
-    "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-6062cc70/Vkd3d-3.0.1-6062cc70.wcp"
-  },
-  {
-    "type": "VKD3D",
     "verName": "Vkd3d-3.0.1-arm64ec-56a01d84",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-56a01d84/Vkd3d-3.0.1-arm64ec-56a01d84.wcp"
+  },
+  {
+    "type": "VKD3D",
+    "verName": "Vkd3d-3.0.1-56a01d84",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-56a01d84/Vkd3d-3.0.1-56a01d84.wcp"
   },
   {
     "type": "VKD3D",
@@ -526,12 +526,6 @@
     "verName": "Vkd3d-2.9",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-VKD3D/Vkd3d-2.9.wcp"
-  },
-  {
-    "type": "WOWBox64",
-    "verName": "WOWBox64-0.4.3-419e095ea",
-    "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.3-419e095ea/WOWBox64-0.4.3-419e095ea.wcp"
   },
   {
     "type": "WOWBox64",
