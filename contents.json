@@ -529,6 +529,12 @@
   },
   {
     "type": "WOWBox64",
+    "verName": "WOWBox64-0.4.3-dab3fdc35",
+    "verCode": 0,
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.3-dab3fdc35/WOWBox64-0.4.3-dab3fdc35.wcp"
+  },
+  {
+    "type": "WOWBox64",
     "verName": "WOWBox64-0.4.2",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-WOWBox64/WOWBox64-0.4.2.wcp"
