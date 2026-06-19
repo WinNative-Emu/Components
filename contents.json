@@ -85,15 +85,15 @@
   },
   {
     "type": "DXVK",
-    "verName": "2.7.1-arm64ec-gplasync-e1c3403f",
+    "verName": "2.7.1-arm64ec-gplasync-f1fa1a53",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-arm64ec-nightly-e1c3403f/2.7.1-arm64ec-gplasync-e1c3403f.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-arm64ec-nightly-f1fa1a53/2.7.1-arm64ec-gplasync-f1fa1a53.wcp"
   },
   {
     "type": "DXVK",
-    "verName": "2.7.1-gplasync-e1c3403f",
+    "verName": "2.7.1-gplasync-f1fa1a53",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-nightly-e1c3403f/2.7.1-gplasync-e1c3403f.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-nightly-f1fa1a53/2.7.1-gplasync-f1fa1a53.wcp"
   },
   {
     "type": "DXVK",
