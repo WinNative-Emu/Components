@@ -505,9 +505,9 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-arm64ec-b4bf24b7",
+    "verName": "Vkd3d-3.0.1-arm64ec-bee300e4",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-b4bf24b7/Vkd3d-3.0.1-arm64ec-b4bf24b7.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-bee300e4/Vkd3d-3.0.1-arm64ec-bee300e4.wcp"
   },
   {
     "type": "VKD3D",
