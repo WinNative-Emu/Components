@@ -319,9 +319,9 @@
   },
   {
     "type": "FEXCore",
-    "verName": "FEXCore-2605-9f195ff37",
+    "verName": "FEXCore-2605-ab4e0f653",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2605-9f195ff37/FEXCore-2605-9f195ff37.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2605-ab4e0f653/FEXCore-2605-ab4e0f653.wcp"
   },
   {
     "type": "FEXCore",
