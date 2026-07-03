@@ -313,15 +313,15 @@
   },
   {
     "type": "FEXCore",
-    "verName": "FEX-2605",
+    "verName": "FEXCore-2607-1d695f6db",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-FEXCore/FEX-2605.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2607-1d695f6db/FEXCore-2607-1d695f6db.wcp"
   },
   {
     "type": "FEXCore",
-    "verName": "FEXCore-2605-6bcadde65",
+    "verName": "FEX-2605",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2605-6bcadde65/FEXCore-2605-6bcadde65.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-FEXCore/FEX-2605.wcp"
   },
   {
     "type": "FEXCore",
