@@ -1,9 +1,9 @@
 [
   {
     "type": "Box64",
-    "verName": "Box64-0.4.3-2a5480652",
+    "verName": "Box64-0.4.3-462b3c0d7",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.3-2a5480652/Box64-0.4.3-2a5480652.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.3-462b3c0d7/Box64-0.4.3-462b3c0d7.wcp"
   },
   {
     "type": "Box64",
@@ -505,9 +505,9 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-arm64ec-f1338a56",
+    "verName": "Vkd3d-3.0.1-arm64ec-ce3c862c",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-f1338a56/Vkd3d-3.0.1-arm64ec-f1338a56.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-ce3c862c/Vkd3d-3.0.1-arm64ec-ce3c862c.wcp"
   },
   {
     "type": "VKD3D",
