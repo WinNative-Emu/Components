@@ -313,9 +313,9 @@
   },
   {
     "type": "FEXCore",
-    "verName": "FEXCore-2607-2fdbff3d1",
+    "verName": "FEXCore-2607-68740b3c6",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2607-2fdbff3d1/FEXCore-2607-2fdbff3d1.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2607-68740b3c6/FEXCore-2607-68740b3c6.wcp"
   },
   {
     "type": "FEXCore",
@@ -499,9 +499,9 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-651f1776",
+    "verName": "Vkd3d-3.0.1-216b3a01",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-651f1776/Vkd3d-3.0.1-651f1776.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-216b3a01/Vkd3d-3.0.1-216b3a01.wcp"
   },
   {
     "type": "VKD3D",
