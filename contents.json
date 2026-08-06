@@ -1,9 +1,9 @@
 [
   {
     "type": "Box64",
-    "verName": "Box64-0.4.5-3c670efe6",
+    "verName": "Box64-0.4.5-5d881fd59",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-3c670efe6/Box64-0.4.5-3c670efe6.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-5d881fd59/Box64-0.4.5-5d881fd59.wcp"
   },
   {
     "type": "Box64",
@@ -313,9 +313,9 @@
   },
   {
     "type": "FEXCore",
-    "verName": "FEXCore-2608-e869aa644",
+    "verName": "FEXCore-2608-92e43c25d",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2608-e869aa644/FEXCore-2608-e869aa644.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2608-92e43c25d/FEXCore-2608-92e43c25d.wcp"
   },
   {
     "type": "FEXCore",
