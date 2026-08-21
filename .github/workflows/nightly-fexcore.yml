@@ -23,6 +23,29 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      # This repo is not otherwise checked out (only FEX is), but we need patch/ from it.
+      - name: Checkout this repo (for patches)
+        uses: actions/checkout@v4
+        with:
+          path: components
+
+      # FEX aborts the guest process when an *optional* per-app config file fails to
+      # parse, including when it reads as empty. GetApplicationConfig() falls back to a
+      # cwd-relative "./<program>.json" when the FEX config dir cannot be created, so a
+      # guest launched from a bare drive root (D:\game.exe) picks up a path that reads
+      # empty, the JSON parser returns null, and ERROR_AND_DIE_FMT -> ForcedAssert() ->
+      # `hlt #0x1` kills it as EXCEPTION_ILLEGAL_INSTRUCTION (0xc000001d) before FEX has
+      # emulated a single instruction. Make it non-fatal.
+      # Applies cleanly to every FEX tag from FEX-2507 through current master.
+      - name: Apply FEX app-config fix
+        run: |
+          set -euo pipefail
+          cd src
+          git apply --check ../components/patch/fex-appconfig-nonfatal.patch
+          git apply ../components/patch/fex-appconfig-nonfatal.patch
+          grep -q 'invalid JSON format, ignoring it' Source/Common/Config.cpp
+          echo "fex-appconfig-nonfatal.patch applied"
+
       - name: Check for updates
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
