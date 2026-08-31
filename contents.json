@@ -73,15 +73,15 @@
   },
   {
     "type": "DXVK",
-    "verName": "3.1-gplasync-70d7508c",
+    "verName": "3.1-gplasync-adeda663",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-nightly-70d7508c/3.1-gplasync-70d7508c.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-nightly-adeda663/3.1-gplasync-adeda663.wcp"
   },
   {
     "type": "DXVK",
-    "verName": "3.1-arm64ec-gplasync-70d7508c",
+    "verName": "3.1-arm64ec-gplasync-adeda663",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-arm64ec-nightly-70d7508c/3.1-arm64ec-gplasync-70d7508c.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/dxvk-arm64ec-nightly-adeda663/3.1-arm64ec-gplasync-adeda663.wcp"
   },
   {
     "type": "DXVK",
