@@ -511,9 +511,9 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-736a756a",
+    "verName": "Vkd3d-3.0.1-ff262cf1",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-736a756a/Vkd3d-3.0.1-736a756a.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-ff262cf1/Vkd3d-3.0.1-ff262cf1.wcp"
   },
   {
     "type": "VKD3D",
