@@ -1,12 +1,6 @@
 [
   {
     "type": "Box64",
-    "verName": "Box64-0.4.5-51b5f8cfc",
-    "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-51b5f8cfc/Box64-0.4.5-51b5f8cfc.wcp"
-  },
-  {
-    "type": "Box64",
     "verName": "Box64-0.4.2",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-Box64/Box64-0.4.2.wcp"
@@ -511,18 +505,6 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-arm64ec-7f0c30ad",
-    "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-7f0c30ad/Vkd3d-3.0.1-arm64ec-7f0c30ad.wcp"
-  },
-  {
-    "type": "VKD3D",
-    "verName": "Vkd3d-3.0.1-7f0c30ad",
-    "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-7f0c30ad/Vkd3d-3.0.1-7f0c30ad.wcp"
-  },
-  {
-    "type": "VKD3D",
     "verName": "Vkd3d-proton-2.14.1",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-VKD3D/Vkd3d-proton-2.14.1.wcp"
@@ -538,12 +520,6 @@
     "verName": "Vkd3d-2.9",
     "verCode": 0,
     "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/Stable-VKD3D/Vkd3d-2.9.wcp"
-  },
-  {
-    "type": "WOWBox64",
-    "verName": "WOWBox64-0.4.5-51b5f8cfc",
-    "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.5-51b5f8cfc/WOWBox64-0.4.5-51b5f8cfc.wcp"
   },
   {
     "type": "WOWBox64",
