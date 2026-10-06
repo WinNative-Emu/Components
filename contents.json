@@ -1,9 +1,9 @@
 [
   {
     "type": "Box64",
-    "verName": "Box64-0.4.5-abfb8c3b2",
+    "verName": "Box64-0.4.5-bc41dacc8",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-abfb8c3b2/Box64-0.4.5-abfb8c3b2.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-bc41dacc8/Box64-0.4.5-bc41dacc8.wcp"
   },
   {
     "type": "Box64",
@@ -313,9 +313,9 @@
   },
   {
     "type": "FEXCore",
-    "verName": "FEXCore-2609-3648ee97e",
+    "verName": "FEXCore-2609-7d3090f78",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2609-3648ee97e/FEXCore-2609-3648ee97e.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/fex-nightly-2609-7d3090f78/FEXCore-2609-7d3090f78.wcp"
   },
   {
     "type": "FEXCore",
@@ -541,9 +541,9 @@
   },
   {
     "type": "WOWBox64",
-    "verName": "WOWBox64-0.4.5-abfb8c3b2",
+    "verName": "WOWBox64-0.4.5-bc41dacc8",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.5-abfb8c3b2/WOWBox64-0.4.5-abfb8c3b2.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.5-bc41dacc8/WOWBox64-0.4.5-bc41dacc8.wcp"
   },
   {
     "type": "WOWBox64",
