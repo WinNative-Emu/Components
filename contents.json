@@ -1,9 +1,9 @@
 [
   {
     "type": "Box64",
-    "verName": "Box64-0.4.5-ef7005d9e",
+    "verName": "Box64-0.4.5-1f7fd2afb",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-ef7005d9e/Box64-0.4.5-ef7005d9e.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-1f7fd2afb/Box64-0.4.5-1f7fd2afb.wcp"
   },
   {
     "type": "Box64",
