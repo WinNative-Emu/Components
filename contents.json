@@ -1,9 +1,9 @@
 [
   {
     "type": "Box64",
-    "verName": "Box64-0.4.5-27860e6ae",
+    "verName": "Box64-0.4.5-66dafa533",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-27860e6ae/Box64-0.4.5-27860e6ae.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/box64-nightly-0.4.5-66dafa533/Box64-0.4.5-66dafa533.wcp"
   },
   {
     "type": "Box64",
@@ -541,9 +541,9 @@
   },
   {
     "type": "WOWBox64",
-    "verName": "WOWBox64-0.4.5-27860e6ae",
+    "verName": "WOWBox64-0.4.5-66dafa533",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.5-27860e6ae/WOWBox64-0.4.5-27860e6ae.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/wowbox64-nightly-0.4.5-66dafa533/WOWBox64-0.4.5-66dafa533.wcp"
   },
   {
     "type": "WOWBox64",
