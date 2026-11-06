@@ -475,15 +475,15 @@
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.1-87983f34",
+    "verName": "Vkd3d-3.1-db5628e2",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-87983f34/Vkd3d-3.1-87983f34.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-nightly-db5628e2/Vkd3d-3.1-db5628e2.wcp"
   },
   {
     "type": "VKD3D",
-    "verName": "Vkd3d-3.1-arm64ec-87983f34",
+    "verName": "Vkd3d-3.1-arm64ec-db5628e2",
     "verCode": 0,
-    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-87983f34/Vkd3d-3.1-arm64ec-87983f34.wcp"
+    "remoteUrl": "https://github.com/WinNative-Emu/Components/releases/download/vkd3d-arm64ec-nightly-db5628e2/Vkd3d-3.1-arm64ec-db5628e2.wcp"
   },
   {
     "type": "VKD3D",
